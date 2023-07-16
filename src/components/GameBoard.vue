@@ -50,8 +50,8 @@ const ludoStore = useLudoStore();
             :key="boardItem.id"
             class="border-2 p-2"
             :class="[
-              boardItem.id != player.victoryWayEndIndex - 1 &&
-                `border-${player.color}-400`,
+              player.victoryWayIndexes.includes(boardItem.id) &&
+                `bg-${player.color}-100`,
               boardItem.id == player.victoryWayEndIndex - 1 &&
                 'border-green-500 border-4',
             ]"
@@ -87,10 +87,16 @@ const ludoStore = useLudoStore();
     </div>
 
     <div class="tw-class">
-      <span class="bg-red-400 text-red-400 border-red-400"></span>
-      <span class="bg-blue-400 text-blue-400 border-blue-400"></span>
-      <span class="bg-green-400 text-green-400 border-green-400"></span>
-      <span class="bg-yellow-400 text-yellow-400 border-yellow-400"></span>
+      <span class="bg-red-400 bg-red-100 text-red-400 border-red-400"></span>
+      <span
+        class="bg-blue-400 bg-blue-100 text-blue-400 border-blue-400"
+      ></span>
+      <span
+        class="bg-green-400 bg-green-100 text-green-400 border-green-400"
+      ></span>
+      <span
+        class="bg-yellow-400 bg-yellow-100 text-yellow-400 border-yellow-400"
+      ></span>
     </div>
   </div>
 </template>
