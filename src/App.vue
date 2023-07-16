@@ -4,7 +4,7 @@ import GameBoard from "./components/GameBoard.vue";
 const ludoStore = useLudoStore();
 
 const newGame = () => {
-  ludoStore.init();
+  ludoStore.setPlayersCount(2).init();
 };
 
 newGame();
