@@ -13,7 +13,7 @@ const props = defineProps({
 });
 
 const isPlayerTurn = computed(() => {
-  return ludoStore.isPlayerTurn(props.pawn.playerId);
+  return ludoStore.isPlayerTurn(props.pawn.playerIndex);
 });
 
 const isPawnInHome = computed(() => {
@@ -21,14 +21,16 @@ const isPawnInHome = computed(() => {
 });
 
 const playerCurrentDiceValue = computed(() => {
-  return ludoStore.playerCurrentDiceValue(props.pawn.playerId);
+  return ludoStore.getPlayerCurrentDiceValue(props.pawn.playerIndex);
 });
 
 const isDisabled = computed(() => {
   return (
     !isPlayerTurn.value ||
     (isPawnInHome.value && playerCurrentDiceValue.value !== 6) ||
-    !ludoStore.isPlayerCanMove(props.pawn.playerId)
+    !ludoStore.isPlayerCanMove(props.pawn.playerIndex) ||
+    !ludoStore.canMovePawnRelativeToItsDistanceTraveledValue(props.pawn) ||
+    props.pawn.isArrived
   );
 });
 </script>

@@ -31,7 +31,19 @@ const diceIcons = {
 };
 
 const isPlayerTurn = computed(() => {
-  return ludoStore.isPlayerTurn(props.player.id);
+  return ludoStore.isPlayerTurn(props.player.index);
+});
+
+const isPlayerCanMove = computed(() => {
+  return ludoStore.isPlayerCanMove(props.player.index);
+});
+
+const isDisabled = computed(() => {
+  return (
+    !isPlayerTurn.value ||
+    (isPlayerTurn.value && isPlayerCanMove.value) ||
+    ludoStore.isGameFinished
+  );
 });
 </script>
 
@@ -39,10 +51,10 @@ const isPlayerTurn = computed(() => {
   <div>
     <button
       :class="{
-        'opacity-50': !isPlayerTurn,
+        'opacity-50': isDisabled,
       }"
-      :disabled="!isPlayerTurn"
-      @click="ludoStore.rollPlayerDice(player.id)"
+      :disabled="isDisabled"
+      @click="ludoStore.rollPlayerDice(player.index)"
     >
       <SvgIcon
         type="mdi"
