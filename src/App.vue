@@ -5,7 +5,7 @@ import PlayerPawnsHome from "./components/PlayerPawnsHome.vue";
 
 const ludoStore = useLudoStore();
 
-ludoStore.setPlayersCount(1).setPawnCountPerPlayer(1).init();
+ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
 </script>
 
 <template>
