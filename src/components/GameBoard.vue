@@ -53,7 +53,7 @@ const ludoStore = useLudoStore();
               player.victoryWayIndexes.includes(boardItem.id) &&
                 `bg-${player.color}-100`,
               boardItem.id == player.victoryWayEndIndex - 1 &&
-                'border-green-500 border-4',
+                `border-${player.color}-400  border-4`,
             ]"
           >
             <div
