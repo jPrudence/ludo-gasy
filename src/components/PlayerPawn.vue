@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useLudoStore } from "../stores/ludo";
-import { mdiCar } from "@mdi/js";
+import { mdiRadioactiveCircleOutline } from "@mdi/js";
 
 const ludoStore = useLudoStore();
 
@@ -9,6 +9,10 @@ const props = defineProps({
   pawn: {
     type: Object,
     required: true,
+  },
+  iconSize: {
+    type: Number,
+    default: 48,
   },
 });
 
@@ -33,6 +37,10 @@ const isDisabled = computed(() => {
     props.pawn.isArrived
   );
 });
+
+const pawnColor = computed(() => {
+  return `text-${props.pawn.color}-400`;
+});
 </script>
 
 <template>
@@ -40,13 +48,18 @@ const isDisabled = computed(() => {
     <button
       class="flex flex-col items-center justify-center gap-3"
       :class="{
-        'opacity-50': isDisabled,
+        'opacity-80 scale-75': isDisabled,
+        'relative animate-bounce scale-125': !isDisabled,
       }"
       :disabled="isDisabled"
       @click="ludoStore.movePawn(pawn)"
     >
-      <SvgIcon type="mdi" :path="mdiCar" :size="48" />
-      <p>Position : {{ pawn.position }}</p>
+      <SvgIcon
+        :class="pawnColor"
+        type="mdi"
+        :path="mdiRadioactiveCircleOutline"
+        :size="iconSize"
+      />
     </button>
   </div>
 </template>

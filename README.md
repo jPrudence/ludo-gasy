@@ -1,8 +1,9 @@
 # Ludo Gasy
 
+Implementation of the logic of the Ludo game in JavaScript & Vue.js
 ## Live demo
 
-[https://ludo-ekipa.netlify.app](https://ludo-ekipa.netlify.app)
+[https://ludo-gasy.netlify.app](https://ludo-gasy.netlify.app)
 
 ## Project Setup
 
@@ -21,3 +22,5 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Fanajana be ho an'ny Jirama 🫡

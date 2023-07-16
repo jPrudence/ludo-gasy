@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 const WAY_LENGTH_PER_PAWN = 51; // counted from 0
 const VICTORY_WAY_LENGTH = 6;
 const TOTAL_WAY_LENGTH_PER_PAWN = WAY_LENGTH_PER_PAWN + VICTORY_WAY_LENGTH - 1; // -1 : because 0 is counted
-const DISTANCE_BETWEEN_START_POINTS = 52 / 4; // 4 : nombre de base de joueurs
+const playerColors = ["red", "blue", "green", "yellow"];
 
 export const useLudoStore = defineStore("ludo", {
   state: () => ({
@@ -13,8 +13,9 @@ export const useLudoStore = defineStore("ludo", {
     victoryWayLength: VICTORY_WAY_LENGTH,
     // total de cases avec chemin de victoire
     totalWayLengthPerPawn: TOTAL_WAY_LENGTH_PER_PAWN,
-    // nombre de cases distance entre les points de départ de 2 joueurs
-    distanceBetweenStartPoints: DISTANCE_BETWEEN_START_POINTS,
+    // nombre de cases distance entre les points de départ de chaque joueur
+    // default : 13
+    distanceBetweenStartPoints: 13,
     // nombre de pions par joueur
     pawnsCountPerPlayer: 4,
     // nombre de joueurs
@@ -32,12 +33,13 @@ export const useLudoStore = defineStore("ludo", {
     // classement des joueurs
     playersRanking: [],
   }),
-  actions: {
-    // preparation du jeu
 
+  actions: {
     init() {
       this.gameIsFinished = false;
       this.playersRanking = [];
+
+      this.calculateDistanceBetweenStartPoints();
 
       this.createPlayers();
 
@@ -45,8 +47,21 @@ export const useLudoStore = defineStore("ludo", {
     },
 
     setPlayersCount(count) {
-      this.playersCount = count;
+      if (count <= 4) {
+        this.playersCount = count;
+      } else {
+        console.error("Le nombre de joueurs doit être inférieur ou égal à 4");
+      }
+
       return this;
+    },
+
+    calculateDistanceBetweenStartPoints() {
+      if (this.playersCount == 2) {
+        this.distanceBetweenStartPoints = 26;
+      } else {
+        this.distanceBetweenStartPoints = 13;
+      }
     },
 
     setPawnCountPerPlayer(count) {
@@ -55,17 +70,11 @@ export const useLudoStore = defineStore("ludo", {
     },
 
     createPlayers() {
-      console.log({
-        playersCount: this.playersCount,
-      });
-
       for (let index = 0; index < this.playersCount; index++) {
         const player = this.createPlayer(index);
-        player.pawns = this.createPawns(player.index);
+        player.pawns = this.createPawns(player);
         this.players.push(player);
       }
-
-      console.log({ players: this.players });
     },
 
     createPlayer(index) {
@@ -80,33 +89,36 @@ export const useLudoStore = defineStore("ludo", {
         victoryWayIndexes: [],
         rank: null,
         arrivedPawnsCount: 0,
+        color: playerColors[index],
       };
     },
 
-    createPawns(playerIndex) {
+    createPawns(player) {
       const pawns = [];
 
       for (let index = 0; index < this.pawnsCountPerPlayer; index++) {
-        pawns.push(this.createPawn(playerIndex, index));
+        pawns.push(this.createPawn(player, index));
       }
 
       return pawns;
     },
 
-    createPawn(playerIndex, pawnId) {
+    createPawn(player, pawnIndex) {
       return {
-        id: `${playerIndex}-${pawnId}`,
-        playerIndex: playerIndex,
+        id: `${player.index}-${pawnIndex}`,
+        index: pawnIndex,
+        playerIndex: player.index,
         position: -1,
         distanceTraveled: 0,
         isInVictoryWay: false,
         isArrived: false,
+        color: player.color,
       };
     },
 
     prepareBoard() {
       // creation des cases de parcours
-      for (let index = 0; index < this.wayLengthPerPawn; index++) {
+      for (let index = 0; index <= this.wayLengthPerPawn; index++) {
         const wayCase = this.createWayCase(index);
         this.board.push(wayCase);
       }
@@ -166,8 +178,7 @@ export const useLudoStore = defineStore("ludo", {
     createWayCase(index) {
       return {
         id: index,
-        type: "way",
-        pawnId: null,
+        pawns: [],
       };
     },
 
@@ -212,6 +223,7 @@ export const useLudoStore = defineStore("ludo", {
       const player = this.getPlayerByIndex(pawn.playerIndex);
       const diceValue = player.currentDiceValue;
       player.canMove = false;
+      const previousPosition = pawn.position;
 
       if (!diceValue) {
         console.log("no dice value");
@@ -241,27 +253,13 @@ export const useLudoStore = defineStore("ludo", {
           pawn.isInVictoryWay = true;
         }
 
+        console.log(
+          `distanceTraveled : ${pawn.distanceTraveled} - totalWayLengthPerPawn : ${this.totalWayLengthPerPawn}`
+        );
+
         if (pawn.distanceTraveled == this.totalWayLengthPerPawn) {
           pawn.isArrived = true;
         }
-
-        console.log(
-          `pawn ${pawn.id} from ${
-            pawn.position
-          } to ${nextPosition} with dice value ${diceValue} | wayEndIndex : ${
-            player.wayEndIndex
-          }
-          | isInVictoryWay : ${pawn.isInVictoryWay ? "yes" : "no"}
-          | wayLengthPerPawn : ${this.wayLengthPerPawn}
-          | distanceTraveled : ${pawn.distanceTraveled}
-          | totalWayLengthPerPawn : ${this.totalWayLengthPerPawn}
-          | canMovePawnRelativeToItsDistanceTraveledValue : ${
-            this.canMovePawnRelativeToItsDistanceTraveledValue(pawn)
-              ? "yes"
-              : "no"
-          }
-          `
-        );
 
         pawn.position = nextPosition;
 
@@ -277,9 +275,41 @@ export const useLudoStore = defineStore("ludo", {
         }
       }
 
+      if (previousPosition != pawn.position) {
+        this.updatePawnInTheBoard(pawn, previousPosition);
+      }
+
       if (diceValue !== 6 || this.playersCount === 1) {
         this.nextPlayer();
       }
+    },
+
+    updatePawnInTheBoard(pawn, previousPosition) {
+      const previousPawnBoard = this.board[previousPosition];
+      const currentPawnBoard = this.board[pawn.position];
+
+      if (previousPosition !== -1) {
+        previousPawnBoard.pawns = previousPawnBoard.pawns.filter(
+          (pawnInBoard) => pawnInBoard.id !== pawn.id
+        );
+      }
+
+      this.handleOtherPawnsInTheSameCase(currentPawnBoard, pawn);
+    },
+
+    handleOtherPawnsInTheSameCase(pawnBoard, lastPawn) {
+      const filteredBoardPawns = [lastPawn];
+
+      pawnBoard.pawns.map((pawn) => {
+        if (!pawn.isInVictoryWay && pawn.playerIndex !== lastPawn.playerIndex) {
+          this.players[pawn.playerIndex].pawns[pawn.index].position = -1;
+          this.players[pawn.playerIndex].pawns[pawn.index].distanceTraveled = 0;
+        } else {
+          filteredBoardPawns.push(pawn);
+        }
+      });
+
+      this.board[pawnBoard.id].pawns = filteredBoardPawns;
     },
 
     getPlayerByIndex(playerIndex) {
@@ -336,7 +366,7 @@ export const useLudoStore = defineStore("ludo", {
       // ajouter le joueur au classement
       this.playersRanking.push(player);
 
-      if (player.rank === this.playersCount) {
+      if (player.rank === this.playersCount - 1) {
         this.isGameFinished = true;
       }
     },
