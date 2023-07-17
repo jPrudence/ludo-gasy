@@ -30,7 +30,7 @@ const ludoStore = useLudoStore();
             ]"
           >
             <span
-              class="text-gray-300 text-xs absolute -top-5 left-0 w-full text-center"
+              class="select-none text-gray-300 text-xs absolute -top-5 left-0 w-full text-center"
               >{{ boardItem.id }}</span
             >
 
