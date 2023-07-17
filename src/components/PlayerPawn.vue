@@ -48,8 +48,9 @@ const pawnColor = computed(() => {
     <button
       class="flex flex-col items-center justify-center gap-3"
       :class="{
-        'opacity-80 scale-75': isDisabled,
-        'relative animate-bounce scale-125': !isDisabled,
+        'opacity-80 scale-75 cursor-no-drop': isDisabled,
+        'relative animate-bounce hover:animate-none scale-125 cursor-pointer':
+          !isDisabled,
       }"
       :disabled="isDisabled"
       @click="ludoStore.movePawn(pawn)"

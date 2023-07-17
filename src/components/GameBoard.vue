@@ -23,56 +23,85 @@ const ludoStore = useLudoStore();
           <td
             v-for="boardItem in ludoStore.board"
             :key="boardItem.id"
-            class="border-2 border-gray-500 p-2 relative"
+            class="border-2 border-gray-400 p-1 relative"
+            :class="[
+              !boardItem.pawns.length && 'p-4',
+              boardItem.cellStartOf && `bg-${boardItem.cellStartOf.color}-100`,
+            ]"
           >
             <span
               class="text-gray-300 text-xs absolute -top-5 left-0 w-full text-center"
               >{{ boardItem.id }}</span
             >
+
+            <div
+              v-if="boardItem.cellEndOf"
+              class="opacity-70 text-gray-400 absolute top-0 left-0 w-full h-full flex justify-center items-center transform rotate-45"
+            >
+              <SvgIcon
+                type="mdi"
+                size="20"
+                :path="mdiArrowRightThinCircleOutline"
+              />
+            </div>
+
+            <div
+              v-if="boardItem.cellStartOf"
+              class="opacity-70 text-gray-400 absolute top-0 left-0 w-full h-full flex justify-center items-center"
+            >
+              <SvgIcon
+                type="mdi"
+                size="20"
+                :path="mdiArrowRightThinCircleOutline"
+              />
+            </div>
+
             <div
               v-if="boardItem.pawns.length"
               class="flex flex-col items-center justify-center"
             >
               <div v-for="pawn in boardItem.pawns" :key="pawn.id">
-                <span v-if="!pawn.isInVictoryWay">
-                  <PlayerPawn :pawn="pawn" :iconSize="25" />
-                </span>
+                <PlayerPawn
+                  v-if="!pawn.isInVictoryCell"
+                  :pawn="pawn"
+                  :iconSize="25"
+                />
               </div>
             </div>
-            <div v-else>--</div>
           </td>
         </tr>
-
-        <tr v-for="player in ludoStore.players" :key="player.index">
+        <tr class="font-bold">
           <td></td>
           <td
             v-for="boardItem in ludoStore.board"
             :key="boardItem.id"
-            class="border-2 p-2"
+            class="p-1"
             :class="[
-              player.victoryWayIndexes.includes(boardItem.id) &&
-                `bg-${player.color}-100`,
-              boardItem.id == player.victoryWayEndIndex - 1 &&
-                `border-${player.color}-400  border-4`,
+              (!boardItem.victoryCellOf ||
+                boardItem.id !==
+                  boardItem.victoryCellOf.victoryCellEndIndex - 1) &&
+                'border-gray-400 border-2',
+              boardItem.victoryCellOf &&
+                `bg-${boardItem.victoryCellOf.color}-100`,
+              boardItem.victoryCellOf &&
+                boardItem.id ==
+                  boardItem.victoryCellOf.victoryCellEndIndex - 1 &&
+                `border-${boardItem.victoryCellOf.color}-400 border-4`,
+              !boardItem.pawns.length && 'p-4',
             ]"
           >
             <div
               v-if="boardItem.pawns.length"
               class="flex flex-col items-center justify-center"
             >
-              <template v-for="pawn in boardItem.pawns" :key="pawn.id">
-                <div
-                  v-if="pawn.playerIndex == player.index && pawn.isInVictoryWay"
-                  :class="{
-                    'font-bold': pawn.isInVictoryWay,
-                    'text-green-500': pawn.isArrived,
-                  }"
-                >
-                  <PlayerPawn :pawn="pawn" :iconSize="20" />
-                </div>
-              </template>
+              <div v-for="pawn in boardItem.pawns" :key="pawn.id">
+                <PlayerPawn
+                  v-if="pawn.isInVictoryCell"
+                  :pawn="pawn"
+                  :iconSize="25"
+                />
+              </div>
             </div>
-            <div v-else>--</div>
           </td>
         </tr>
       </tbody>
@@ -84,19 +113,6 @@ const ludoStore = useLudoStore();
         :key="player.index"
         :player="player"
       />
-    </div>
-
-    <div class="tw-class">
-      <span class="bg-red-400 bg-red-100 text-red-400 border-red-400"></span>
-      <span
-        class="bg-blue-400 bg-blue-100 text-blue-400 border-blue-400"
-      ></span>
-      <span
-        class="bg-green-400 bg-green-100 text-green-400 border-green-400"
-      ></span>
-      <span
-        class="bg-yellow-400 bg-yellow-100 text-yellow-400 border-yellow-400"
-      ></span>
     </div>
   </div>
 </template>

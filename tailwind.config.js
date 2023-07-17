@@ -5,4 +5,9 @@ module.exports = {
     extend: {},
   },
   plugins: [],
+  safelist: [
+    {
+      pattern: /(bg|text|border)-(red|blue|green|yellow)-(100|400)/,
+    },
+  ],
 };

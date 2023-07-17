@@ -8,11 +8,11 @@ const playerColors = ["red", "blue", "green", "yellow"];
 export const useLudoStore = defineStore("ludo", {
   state: () => ({
     // longeur de parcours par pion
-    wayLengthPerPawn: WAY_LENGTH_PER_PAWN,
+    cellLengthPerPawn: WAY_LENGTH_PER_PAWN,
     // longeur chemin de victoire
-    victoryWayLength: VICTORY_WAY_LENGTH,
+    victoryCellLength: VICTORY_WAY_LENGTH,
     // total de cases avec chemin de victoire
-    totalWayLengthPerPawn: TOTAL_WAY_LENGTH_PER_PAWN,
+    totalCellLengthPerPawn: TOTAL_WAY_LENGTH_PER_PAWN,
     // nombre de cases distance entre les points de départ de chaque joueur
     // default : 13
     distanceBetweenStartPoints: 13,
@@ -82,11 +82,11 @@ export const useLudoStore = defineStore("ludo", {
         index,
         name: `Player ${index + 1}`,
         currentDiceValue: 0,
-        wayStartIndex: null,
-        wayEndIndex: null,
-        victoryWayStartIndex: null,
-        victoryWayEndIndex: null,
-        victoryWayIndexes: [],
+        cellStartIndex: null,
+        cellEndIndex: null,
+        victoryCellStartIndex: null,
+        victoryCellEndIndex: null,
+        victoryCellIndexes: [],
         rank: null,
         arrivedPawnsCount: 0,
         color: playerColors[index],
@@ -110,7 +110,7 @@ export const useLudoStore = defineStore("ludo", {
         playerIndex: player.index,
         position: -1,
         distanceTraveled: 0,
-        isInVictoryWay: false,
+        isInVictoryCell: false,
         isArrived: false,
         color: player.color,
       };
@@ -118,9 +118,9 @@ export const useLudoStore = defineStore("ludo", {
 
     prepareBoard() {
       // creation des cases de parcours
-      for (let index = 0; index <= this.wayLengthPerPawn; index++) {
-        const wayCase = this.createWayCase(index);
-        this.board.push(wayCase);
+      for (let index = 0; index <= this.cellLengthPerPawn; index++) {
+        const cell = this.createCell(index);
+        this.board.push(cell);
       }
 
       // assignation des cases de parcours par joueur
@@ -129,56 +129,80 @@ export const useLudoStore = defineStore("ludo", {
         playerIndex < this.playersCount;
         playerIndex++
       ) {
+        const player = this.players[playerIndex];
+
         const distanceBetweenStartPoints =
           this.distanceBetweenStartPoints * playerIndex;
 
-        const wayStartIndex = distanceBetweenStartPoints;
+        const cellStartIndex = distanceBetweenStartPoints;
 
-        let wayEndIndex = wayStartIndex - 2;
+        let cellEndIndex = cellStartIndex - 2;
 
-        if (wayEndIndex < 0) {
-          wayEndIndex = this.wayLengthPerPawn - 1;
+        if (cellEndIndex < 0) {
+          cellEndIndex = this.cellLengthPerPawn - 1;
         }
 
         // calcul de l'index de debut et de fin du chemin de victoire
-        const victoryWayStartIndex = wayEndIndex + 1;
-        let victoryWayEndIndex = victoryWayStartIndex + this.victoryWayLength;
+        const victoryCellStartIndex = cellEndIndex + 1;
+        let victoryCellEndIndex =
+          victoryCellStartIndex + this.victoryCellLength;
 
-        if (victoryWayEndIndex > this.wayLengthPerPawn) {
-          victoryWayEndIndex = victoryWayEndIndex - (this.wayLengthPerPawn + 1);
+        if (victoryCellEndIndex > this.cellLengthPerPawn) {
+          victoryCellEndIndex =
+            victoryCellEndIndex - (this.cellLengthPerPawn + 1);
         }
 
-        this.players[playerIndex].wayStartIndex = wayStartIndex;
-        this.players[playerIndex].wayEndIndex = wayEndIndex;
-        this.players[playerIndex].victoryWayStartIndex = victoryWayStartIndex;
-        this.players[playerIndex].victoryWayEndIndex = victoryWayEndIndex;
-        this.players[playerIndex].victoryWayIndexes =
-          this.generatePlayerVictoryWayIndexes(this.players[playerIndex]);
+        player.cellStartIndex = cellStartIndex;
+        this.board[cellStartIndex].cellStartOf = {
+          playerIndex: player.index,
+          color: player.color,
+        };
+
+        player.cellEndIndex = cellEndIndex;
+        this.board[cellEndIndex].cellEndOf = {
+          playerIndex: player.index,
+          color: player.color,
+        };
+
+        player.victoryCellStartIndex = victoryCellStartIndex;
+        player.victoryCellEndIndex = victoryCellEndIndex;
+        player.victoryCellIndexes =
+          this.generatePlayerVictoryCellIndexes(player);
       }
     },
 
-    generatePlayerVictoryWayIndexes(player) {
-      const victoryWayIndexes = [];
+    generatePlayerVictoryCellIndexes(player) {
+      const victoryCellIndexes = [];
 
-      let currentVictoryWayIndex = player.victoryWayStartIndex;
+      let currentVictoryCellIndex = player.victoryCellStartIndex;
 
-      while (currentVictoryWayIndex !== player.victoryWayEndIndex) {
-        victoryWayIndexes.push(currentVictoryWayIndex);
+      while (currentVictoryCellIndex !== player.victoryCellEndIndex) {
+        victoryCellIndexes.push(currentVictoryCellIndex);
 
-        currentVictoryWayIndex++;
+        // marquage des cases de victoire
+        this.board[currentVictoryCellIndex].victoryCellOf = {
+          playerIndex: player.index,
+          color: player.color,
+          victoryCellEndIndex: player.victoryCellEndIndex,
+        };
 
-        if (currentVictoryWayIndex > this.wayLengthPerPawn) {
-          currentVictoryWayIndex = 0;
+        currentVictoryCellIndex++;
+
+        if (currentVictoryCellIndex > this.cellLengthPerPawn) {
+          currentVictoryCellIndex = 0;
         }
       }
 
-      return victoryWayIndexes;
+      return victoryCellIndexes;
     },
 
-    createWayCase(index) {
+    createCell(index) {
       return {
         id: index,
         pawns: [],
+        victoryCellOf: null,
+        cellStartOf: null,
+        cellEndOf: null,
       };
     },
 
@@ -232,7 +256,7 @@ export const useLudoStore = defineStore("ludo", {
 
       if (pawn.position === -1) {
         if (diceValue === 6) {
-          pawn.position = player.wayStartIndex;
+          pawn.position = player.cellStartIndex;
 
           console.log(`pawn ${pawn.id} is out of home`);
         } else {
@@ -242,22 +266,22 @@ export const useLudoStore = defineStore("ludo", {
         pawn.distanceTraveled += diceValue;
         let nextPosition = +pawn.position + +diceValue;
 
-        if (nextPosition > this.wayLengthPerPawn) {
-          nextPosition = nextPosition - (this.wayLengthPerPawn + 1);
+        if (nextPosition > this.cellLengthPerPawn) {
+          nextPosition = nextPosition - (this.cellLengthPerPawn + 1);
         }
 
         if (
-          !pawn.isInVictoryWay &&
-          pawn.distanceTraveled >= this.wayLengthPerPawn
+          !pawn.isInVictoryCell &&
+          pawn.distanceTraveled >= this.cellLengthPerPawn
         ) {
-          pawn.isInVictoryWay = true;
+          pawn.isInVictoryCell = true;
         }
 
         console.log(
-          `distanceTraveled : ${pawn.distanceTraveled} - totalWayLengthPerPawn : ${this.totalWayLengthPerPawn}`
+          `distanceTraveled : ${pawn.distanceTraveled} - totalCellLengthPerPawn : ${this.totalCellLengthPerPawn}`
         );
 
-        if (pawn.distanceTraveled == this.totalWayLengthPerPawn) {
+        if (pawn.distanceTraveled == this.totalCellLengthPerPawn) {
           pawn.isArrived = true;
         }
 
@@ -298,10 +322,18 @@ export const useLudoStore = defineStore("ludo", {
     },
 
     handleOtherPawnsInTheSameCase(pawnBoard, lastPawn) {
+      if (lastPawn.isInVictoryCell) {
+        this.board[pawnBoard.id].pawns.push(lastPawn);
+        return;
+      }
+
       const filteredBoardPawns = [lastPawn];
 
       pawnBoard.pawns.map((pawn) => {
-        if (!pawn.isInVictoryWay && pawn.playerIndex !== lastPawn.playerIndex) {
+        if (
+          !pawn.isInVictoryCell &&
+          pawn.playerIndex !== lastPawn.playerIndex
+        ) {
           this.players[pawn.playerIndex].pawns[pawn.index].position = -1;
           this.players[pawn.playerIndex].pawns[pawn.index].distanceTraveled = 0;
         } else {
@@ -347,7 +379,7 @@ export const useLudoStore = defineStore("ludo", {
 
     canMovePawnRelativeToItsDistanceTraveledValue(pawn) {
       if (
-        this.totalWayLengthPerPawn - pawn.distanceTraveled <
+        this.totalCellLengthPerPawn - pawn.distanceTraveled <
         this.getPlayerCurrentDiceValue(pawn.playerIndex)
       ) {
         return false;

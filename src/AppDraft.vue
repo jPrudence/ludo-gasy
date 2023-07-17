@@ -32,7 +32,7 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
             >
               <div v-for="pawn in boardItem.pawns" :key="pawn.id">
                 <span
-                  v-if="!pawn.isInVictoryWay"
+                  v-if="!pawn.isInVictoryCell"
                   :class="[`text-${pawn.color}-400`]"
                 >
                   <PlayerPawn :pawn="pawn" :iconSize="25" />
@@ -49,9 +49,9 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
             :key="boardItem.id"
             class="border-2 p-2"
             :class="[
-              boardItem.id != player.victoryWayEndIndex - 1 &&
+              boardItem.id != player.victoryCellEndIndex - 1 &&
                 `bg-${player.color}-400`,
-              boardItem.id == player.victoryWayEndIndex - 1 &&
+              boardItem.id == player.victoryCellEndIndex - 1 &&
                 'border-green-500 border-4',
             ]"
           >
@@ -61,9 +61,9 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
             >
               <template v-for="pawn in boardItem.pawns" :key="pawn.id">
                 <div
-                  v-if="pawn.playerIndex == player.index && pawn.isInVictoryWay"
+                  v-if="pawn.playerIndex == player.index && pawn.isInVictoryCell"
                   :class="{
-                    'font-bold': pawn.isInVictoryWay,
+                    'font-bold': pawn.isInVictoryCell,
                     'text-green-500': pawn.isArrived,
                   }"
                 >
@@ -93,7 +93,7 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
         <tbody>
           <tr>
             <td
-              v-for="boardI in ludoStore.wayLengthPerPawn + 1"
+              v-for="boardI in ludoStore.cellLengthPerPawn + 1"
               :key="boardI"
               class="border-2 border-gray-500 p-2"
             >
@@ -105,8 +105,8 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
                   )"
                   :key="pawn.id"
                   :class="{
-                    'font-bold': pawn.isInVictoryWay,
-                    'text-red-500': pawn.isInVictoryWay && !pawn.isArrived,
+                    'font-bold': pawn.isInVictoryCell,
+                    'text-red-500': pawn.isInVictoryCell && !pawn.isArrived,
                     'text-green-500': pawn.isArrived,
                   }"
                 >
@@ -117,15 +117,15 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
           </tr>
           <tr>
             <td
-              v-for="boardI in ludoStore.wayLengthPerPawn + 1"
+              v-for="boardI in ludoStore.cellLengthPerPawn + 1"
               :key="boardI"
               class="border-2 px-2"
               :class="{
-                'border-green-500 border-4': player.wayStartIndex == boardI - 1,
-                'border-blue-500 border-4': player.wayEndIndex == boardI - 1,
+                'border-green-500 border-4': player.cellStartIndex == boardI - 1,
+                'border-blue-500 border-4': player.cellEndIndex == boardI - 1,
                 'border-gray-500':
-                  player.wayStartIndex != boardI - 1 &&
-                  player.wayEndIndex != boardI - 1,
+                  player.cellStartIndex != boardI - 1 &&
+                  player.cellEndIndex != boardI - 1,
               }"
             >
               {{ boardI - 1 }}
@@ -133,15 +133,15 @@ ludoStore.setPlayersCount(2).setPawnCountPerPlayer(2).init();
           </tr>
           <tr>
             <td
-              v-for="boardI in ludoStore.wayLengthPerPawn + 1"
+              v-for="boardI in ludoStore.cellLengthPerPawn + 1"
               :key="boardI"
               class="px-2"
               :class="{
                 'bg-red-500 border-2 border-red-500':
-                  player.victoryWayIndexes.includes(boardI - 1),
+                  player.victoryCellIndexes.includes(boardI - 1),
               }"
             >
-              <template v-if="player.victoryWayIndexes.includes(boardI - 1)">{{
+              <template v-if="player.victoryCellIndexes.includes(boardI - 1)">{{
                 boardI - 1
               }}</template>
             </td>

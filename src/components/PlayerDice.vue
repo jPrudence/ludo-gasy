@@ -51,8 +51,8 @@ const isDisabled = computed(() => {
   <div>
     <button
       :class="{
-        'opacity-20': isDisabled,
-        'animate-ping': !isDisabled,
+        'opacity-20 cursor-no-drop': isDisabled,
+        'animate-ping hover:animate-none cursor-pointer': !isDisabled,
       }"
       :disabled="isDisabled"
       @click="ludoStore.rollPlayerDice(player.index)"
