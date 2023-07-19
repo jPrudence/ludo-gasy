@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useLudoStore } from "../stores/ludo";
-import { mdiRadioactiveCircleOutline } from "@mdi/js";
+import BeefIcon from "./icons/BeefIcon.vue";
 
 const ludoStore = useLudoStore();
 
@@ -39,7 +39,7 @@ const isDisabled = computed(() => {
 });
 
 const pawnColor = computed(() => {
-  return `text-${props.pawn.color}-400`;
+  return `text-${props.pawn.color}-600`;
 });
 </script>
 
@@ -49,18 +49,14 @@ const pawnColor = computed(() => {
       class="flex flex-col items-center justify-center gap-3"
       :class="{
         'opacity-80 scale-75 cursor-no-drop': isDisabled,
+        'blur-[1px]': isDisabled && isPawnInHome,
         'relative animate-bounce hover:animate-none scale-125 cursor-pointer':
           !isDisabled,
       }"
       :disabled="isDisabled"
       @click="ludoStore.movePawn(pawn)"
     >
-      <SvgIcon
-        :class="pawnColor"
-        type="mdi"
-        :path="mdiRadioactiveCircleOutline"
-        :size="iconSize"
-      />
+      <BeefIcon :class="pawnColor" :width="iconSize" />
     </button>
   </div>
 </template>
