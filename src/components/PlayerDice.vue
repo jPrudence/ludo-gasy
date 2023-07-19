@@ -96,6 +96,6 @@ const isDisabled = computed(() => {
 }
 
 .rolling {
-  animation: rolling 0.2s linear infinite;
+  animation: rolling 0.8s linear infinite;
 }
 </style>
