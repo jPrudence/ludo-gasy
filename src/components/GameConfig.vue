@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useLudoStore } from "../stores/ludo";
 const ludoStore = useLudoStore();
 
-const playersCount = ref(2);
+const playersCount = ref(ludoStore.playersCount);
 
 const newGame = () => {
   ludoStore.setPlayersCount(playersCount.value).init();
@@ -17,8 +17,6 @@ const canStartNewGame = () => {
     playersCount.value !== ludoStore.playersCount
   );
 };
-
-newGame();
 </script>
 
 <template>

@@ -6,6 +6,7 @@ const TOTAL_WAY_LENGTH_PER_PAWN = WAY_LENGTH_PER_PAWN + VICTORY_WAY_LENGTH - 1; 
 const playerColors = ["red", "green", "blue", "yellow"];
 
 export const useLudoStore = defineStore("ludo", {
+  persist: true,
   state: () => ({
     // longeur de parcours par pion
     cellLengthPerPawn: WAY_LENGTH_PER_PAWN,
@@ -19,7 +20,7 @@ export const useLudoStore = defineStore("ludo", {
     // nombre de pions par joueur
     pawnsCountPerPlayer: 4,
     // nombre de joueurs
-    playersCount: 4,
+    playersCount: 2,
     // tableau des joueurs
     players: [],
     // tableau des cases
