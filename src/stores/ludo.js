@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 const WAY_LENGTH_PER_PAWN = 51; // counted from 0
 const VICTORY_WAY_LENGTH = 6;
 const TOTAL_WAY_LENGTH_PER_PAWN = WAY_LENGTH_PER_PAWN + VICTORY_WAY_LENGTH - 1; // -1 : because 0 is counted
-const playerColors = ["red", "blue", "green", "yellow"];
+const playerColors = ["red", "green", "blue", "yellow"];
 
 export const useLudoStore = defineStore("ludo", {
   state: () => ({
@@ -32,12 +32,17 @@ export const useLudoStore = defineStore("ludo", {
     isGameFinished: false,
     // classement des joueurs
     playersRanking: [],
+    // etat du dé
+    isDiceRolling: false,
   }),
 
   actions: {
     init() {
-      this.gameIsFinished = false;
+      this.isGameFinished = false;
       this.playersRanking = [];
+      this.players = [];
+      this.board = [];
+      this.currentPlayerIndex = 0;
 
       this.calculateDistanceBetweenStartPoints();
 
@@ -80,7 +85,7 @@ export const useLudoStore = defineStore("ludo", {
     createPlayer(index) {
       return {
         index,
-        name: `Player ${index + 1}`,
+        name: `Mpilalao ${index + 1}`,
         currentDiceValue: 0,
         cellStartIndex: null,
         cellEndIndex: null,
@@ -206,7 +211,9 @@ export const useLudoStore = defineStore("ludo", {
       };
     },
 
-    rollPlayerDice(playerIndex) {
+    async rollPlayerDice(playerIndex) {
+      await this.simulateDiceRolling();
+
       const player = this.players[playerIndex];
       const diceValue = this.getRandomDiceValue();
 
@@ -237,6 +244,18 @@ export const useLudoStore = defineStore("ludo", {
           this.players[playerIndex].canMove = true;
         }
       }
+    },
+
+    async simulateDiceRolling() {
+      this.isDiceRolling = true;
+
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 300);
+      });
+
+      this.isDiceRolling = false;
     },
 
     getRandomDiceValue() {

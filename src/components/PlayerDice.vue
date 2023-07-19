@@ -52,16 +52,47 @@ const isDisabled = computed(() => {
     <button
       :class="{
         'opacity-20 cursor-no-drop': isDisabled,
-        'animate-ping hover:animate-none cursor-pointer': !isDisabled,
+        'animate-ping hover:animate-none cursor-pointer':
+          !isDisabled && !ludoStore.isDiceRolling,
+        rolling: !isDisabled && ludoStore.isDiceRolling,
       }"
       :disabled="isDisabled"
       @click="ludoStore.rollPlayerDice(player.index)"
     >
       <SvgIcon
+        v-if="!ludoStore.isDiceRolling"
         type="mdi"
         :path="diceIcons[player.currentDiceValue]"
         :size="48"
       />
+      <SvgIcon v-else type="mdi" :path="mdiDice6Outline" :size="48" />
     </button>
   </div>
 </template>
+<style scoped>
+@keyframes rolling {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  25% {
+    transform: rotate(180deg) scale(1.5);
+  }
+
+  50% {
+    transform: rotate(360deg) scale(1);
+  }
+
+  75% {
+    transform: rotate(540deg) scale(-1.5);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.rolling {
+  animation: rolling 0.2s linear infinite;
+}
+</style>
