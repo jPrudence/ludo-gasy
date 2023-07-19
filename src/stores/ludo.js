@@ -37,6 +37,8 @@ export const useLudoStore = defineStore("ludo", {
     isDiceRolling: false,
     // temps de déplacement d'un pion de case en case
     movingSleepTime: 100,
+    // distance entre les cases sécurisées
+    safeCellDistance: 8,
   }),
 
   actions: {
@@ -179,6 +181,8 @@ export const useLudoStore = defineStore("ludo", {
         player.victoryCellIndexes =
           this.generatePlayerVictoryCellIndexes(player);
       }
+
+      this.assignSafeCells();
     },
 
     generatePlayerVictoryCellIndexes(player) {
@@ -231,6 +235,7 @@ export const useLudoStore = defineStore("ludo", {
         cellStartOf: null,
         cellEndOf: null,
         hasMovingShadowOf: null,
+        isSafe: false,
       };
     },
 
@@ -426,15 +431,15 @@ export const useLudoStore = defineStore("ludo", {
       }
     },
 
-    handleOtherPawnsInTheSameCell(pawnBoard, lastPawn) {
-      if (lastPawn.isInVictoryCell) {
-        this.board[pawnBoard.id].pawns.push(lastPawn);
+    handleOtherPawnsInTheSameCell(pawnCell, lastPawn) {
+      if (lastPawn.isInVictoryCell || pawnCell.isSafe) {
+        this.board[pawnCell.id].pawns.push(lastPawn);
         return;
       }
 
       const filteredBoardPawns = [lastPawn];
 
-      pawnBoard.pawns.map((pawn) => {
+      pawnCell.pawns.map((pawn) => {
         if (
           !pawn.isInVictoryCell &&
           pawn.playerIndex !== lastPawn.playerIndex
@@ -446,7 +451,7 @@ export const useLudoStore = defineStore("ludo", {
         }
       });
 
-      this.board[pawnBoard.id].pawns = filteredBoardPawns;
+      this.board[pawnCell.id].pawns = filteredBoardPawns;
     },
 
     getPlayerByIndex(playerIndex) {
@@ -510,6 +515,15 @@ export const useLudoStore = defineStore("ludo", {
 
     async sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
+    },
+
+    assignSafeCells() {
+      this.board.map((cell, index) => {
+        if (index % 13 === 0) {
+          this.board[index].isSafe = true;
+          this.board[index + this.safeCellDistance].isSafe = true;
+        }
+      });
     },
   },
 });

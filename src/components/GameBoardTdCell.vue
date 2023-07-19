@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import PlayerPawn from "./PlayerPawn.vue";
-import { mdiArrowRightThinCircleOutline } from "@mdi/js";
+import { mdiArrowRightThinCircleOutline, mdiStar } from "@mdi/js";
 
 const props = defineProps({
   boardCell: {
@@ -18,7 +18,7 @@ const pawnsNotMoving = computed(() => {
   return pawnsNotInVictoryCell.value.filter((pawn) => !pawn.isMoving);
 });
 
-const arrowClass =
+const cellIconClass =
   "text-gray-600 absolute top-0 left-0 w-full h-full flex justify-center items-center";
 </script>
 
@@ -40,7 +40,7 @@ const arrowClass =
       v-if="boardCell.cellEndOf"
       class="transform rotate-45"
       :class="[
-        arrowClass,
+        cellIconClass,
         pawnsNotInVictoryCell.length ? 'opacity-10' : 'opacity-70',
       ]"
     >
@@ -59,14 +59,13 @@ const arrowClass =
     ></div>
 
     <div
-      v-if="boardCell.cellStartOf"
-      class="opacity-70"
+      v-if="boardCell.isSafe"
       :class="[
-        arrowClass,
-        pawnsNotInVictoryCell.length ? 'opacity-10' : 'opacity-70',
+        cellIconClass,
+        pawnsNotInVictoryCell.length ? 'opacity-40' : 'opacity-70',
       ]"
     >
-      <SvgIcon type="mdi" size="20" :path="mdiArrowRightThinCircleOutline" />
+      <SvgIcon type="mdi" size="25" :path="mdiStar" />
     </div>
 
     <div
