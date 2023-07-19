@@ -60,7 +60,10 @@ const isDisabled = computed(() => {
       @click="ludoStore.rollPlayerDice(player.index)"
     >
       <SvgIcon
-        v-if="!ludoStore.isDiceRolling"
+        v-if="
+          !ludoStore.isDiceRolling ||
+          player.index !== ludoStore.currentPlayerIndex
+        "
         type="mdi"
         :path="diceIcons[player.currentDiceValue]"
         :size="48"
