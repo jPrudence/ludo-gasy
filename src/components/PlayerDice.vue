@@ -53,10 +53,10 @@ const isDisabled = computed(() => {
       :class="{
         'opacity-20 cursor-no-drop': isDisabled,
         'animate-ping hover:animate-none cursor-pointer':
-          !isDisabled && !ludoStore.isDiceRolling,
+          !isDisabled && !ludoStore.isDiceRolling && !player.inMoving,
         rolling: !isDisabled && ludoStore.isDiceRolling,
       }"
-      :disabled="isDisabled"
+      :disabled="isDisabled || ludoStore.isDiceRolling || player.inMoving"
       @click="ludoStore.rollPlayerDice(player.index)"
     >
       <SvgIcon

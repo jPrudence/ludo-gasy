@@ -5,7 +5,7 @@ const ludoStore = useLudoStore();
 
 const playersCount = ref(ludoStore.playersCount);
 
-const newGame = () => {
+const startNewGame = () => {
   ludoStore.setPlayersCount(playersCount.value).init();
 };
 
@@ -47,7 +47,7 @@ const canStartNewGame = () => {
       :class="{
         'opacity-50 hover:opacity-100': !canStartNewGame(),
       }"
-      @click="newGame"
+      @click="startNewGame"
     >
       Anomboka lalao vaovao
     </button>

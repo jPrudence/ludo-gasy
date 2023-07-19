@@ -35,6 +35,8 @@ export const useLudoStore = defineStore("ludo", {
     playersRanking: [],
     // etat du dé
     isDiceRolling: false,
+    // temps de déplacement d'un pion de case en case
+    movingSleepTime: 100,
   }),
 
   actions: {
@@ -96,6 +98,7 @@ export const useLudoStore = defineStore("ludo", {
         rank: null,
         arrivedPawnsCount: 0,
         color: playerColors[index],
+        isMoving: false,
       };
     },
 
@@ -119,6 +122,7 @@ export const useLudoStore = defineStore("ludo", {
         isInVictoryCell: false,
         isArrived: false,
         color: player.color,
+        isMoving: false,
       };
     },
 
@@ -151,7 +155,7 @@ export const useLudoStore = defineStore("ludo", {
         // calcul de l'index de debut et de fin du chemin de victoire
         const victoryCellStartIndex = cellEndIndex + 1;
         let victoryCellEndIndex =
-          victoryCellStartIndex + this.victoryCellLength;
+          victoryCellStartIndex + (this.victoryCellLength - 1);
 
         if (victoryCellEndIndex > this.cellLengthPerPawn) {
           victoryCellEndIndex =
@@ -178,28 +182,45 @@ export const useLudoStore = defineStore("ludo", {
     },
 
     generatePlayerVictoryCellIndexes(player) {
-      const victoryCellIndexes = [];
+      const victoryCellIndexes = this.generateIndexesBetween(
+        player.victoryCellStartIndex,
+        player.victoryCellEndIndex
+      );
 
-      let currentVictoryCellIndex = player.victoryCellStartIndex;
-
-      while (currentVictoryCellIndex !== player.victoryCellEndIndex) {
-        victoryCellIndexes.push(currentVictoryCellIndex);
-
-        // marquage des cases de victoire
+      // marquage des cases de victoire
+      victoryCellIndexes.map((currentVictoryCellIndex) => {
         this.board[currentVictoryCellIndex].victoryCellOf = {
           playerIndex: player.index,
           color: player.color,
           victoryCellEndIndex: player.victoryCellEndIndex,
         };
+      });
 
-        currentVictoryCellIndex++;
+      return victoryCellIndexes;
+    },
 
-        if (currentVictoryCellIndex > this.cellLengthPerPawn) {
-          currentVictoryCellIndex = 0;
+    generateIndexesBetween(startIndex, endIndex) {
+      if (startIndex === endIndex) {
+        return [startIndex];
+      }
+
+      const indexes = [];
+
+      let currentIndex = startIndex;
+
+      while (currentIndex !== endIndex) {
+        indexes.push(currentIndex);
+
+        currentIndex++;
+
+        if (currentIndex > this.cellLengthPerPawn) {
+          currentIndex = 0;
         }
       }
 
-      return victoryCellIndexes;
+      indexes.push(endIndex);
+
+      return indexes;
     },
 
     createCell(index) {
@@ -209,6 +230,7 @@ export const useLudoStore = defineStore("ludo", {
         victoryCellOf: null,
         cellStartOf: null,
         cellEndOf: null,
+        hasMovingShadowOf: null,
       };
     },
 
@@ -237,7 +259,7 @@ export const useLudoStore = defineStore("ludo", {
           if (
             this.canMovePawnRelativeToItsDistanceTraveledValue(pawnsInPlay[0])
           ) {
-            this.movePawn(pawnsInPlay[0]);
+            await this.movePawn(pawnsInPlay[0]);
           } else {
             this.nextPlayer();
           }
@@ -250,11 +272,7 @@ export const useLudoStore = defineStore("ludo", {
     async simulateDiceRolling() {
       this.isDiceRolling = true;
 
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 300);
-      });
+      await this.sleep(300);
 
       this.isDiceRolling = false;
     },
@@ -263,10 +281,10 @@ export const useLudoStore = defineStore("ludo", {
       return Math.floor(Math.random() * 6) + 1;
     },
 
-    movePawn(pawn) {
-      const player = this.getPlayerByIndex(pawn.playerIndex);
-      const diceValue = player.currentDiceValue;
-      player.canMove = false;
+    async movePawn(pawn) {
+      const currentPlayer = this.getPlayerByIndex(pawn.playerIndex);
+      const diceValue = currentPlayer.currentDiceValue;
+      currentPlayer.canMove = false;
       const previousPosition = pawn.position;
 
       if (!diceValue) {
@@ -276,7 +294,7 @@ export const useLudoStore = defineStore("ludo", {
 
       if (pawn.position === -1) {
         if (diceValue === 6) {
-          pawn.position = player.cellStartIndex;
+          pawn.position = currentPlayer.cellStartIndex;
 
           console.log(`pawn ${pawn.id} is out of home`);
         } else {
@@ -297,30 +315,29 @@ export const useLudoStore = defineStore("ludo", {
           pawn.isInVictoryCell = true;
         }
 
-        console.log(
-          `distanceTraveled : ${pawn.distanceTraveled} - totalCellLengthPerPawn : ${this.totalCellLengthPerPawn}`
-        );
-
         if (pawn.distanceTraveled == this.totalCellLengthPerPawn) {
           pawn.isArrived = true;
         }
 
-        pawn.position = nextPosition;
+        await this.movePawnSlowlyToCell(pawn, nextPosition);
 
         if (pawn.isArrived) {
           console.log(`pawn ${pawn.id} is arrived`);
 
-          player.canMove = false;
-          player.arrivedPawnsCount++;
+          currentPlayer.canMove = false;
+          currentPlayer.arrivedPawnsCount++;
 
-          if (player.arrivedPawnsCount === this.pawnsCountPerPlayer) {
+          if (currentPlayer.arrivedPawnsCount === this.pawnsCountPerPlayer) {
             this.setPlayerAsFinished(player);
           }
         }
       }
 
       if (previousPosition != pawn.position) {
-        this.updatePawnInTheBoard(pawn, previousPosition);
+        this.clearPawnFromItsPreviousCell(pawn, previousPosition);
+
+        const currentPawnBoard = this.board[pawn.position];
+        this.handleOtherPawnsInTheSameCell(currentPawnBoard, pawn);
       }
 
       if (diceValue !== 6 || this.playersCount === 1) {
@@ -328,20 +345,88 @@ export const useLudoStore = defineStore("ludo", {
       }
     },
 
-    updatePawnInTheBoard(pawn, previousPosition) {
+    async movePawnSlowlyToCell(pawn, targetCellIndex) {
+      this.players[pawn.playerIndex].inMoving = true;
+      pawn.isMoving = true;
+
+      const temporaryPawnCellIndexes = this.generateIndexesBetween(
+        pawn.position,
+        targetCellIndex
+      );
+
+      const firstTemporaryCellIndex = temporaryPawnCellIndexes[0];
+
+      for await (const temporaryCellIndex of temporaryPawnCellIndexes) {
+        if (temporaryCellIndex !== firstTemporaryCellIndex) {
+          this.board[temporaryCellIndex].pawns.push(pawn);
+
+          await this.sleep(this.movingSleepTime);
+        } else {
+          await this.sleep(this.movingSleepTime / 2);
+        }
+
+        this.setCellPawnMovingShadow(
+          pawn,
+          firstTemporaryCellIndex,
+          temporaryCellIndex
+        );
+
+        this.clearPawnFromItsPreviousCell(pawn, temporaryCellIndex);
+
+        pawn.position = temporaryCellIndex;
+      }
+
+      pawn.isMoving = false;
+      this.players[pawn.playerIndex].inMoving = false;
+
+      await this.clearPawnMovingShadow();
+    },
+
+    setCellPawnMovingShadow(pawn, start, cellIndex) {
+      if (pawn.isInVictoryCell) {
+        this.clearPawnMovingShadow();
+
+        return;
+      }
+
+      const previousCellIndexes = [cellIndex - 1, cellIndex - 2, cellIndex - 3]
+        .map((index) => (index < 0 ? this.cellLengthPerPawn + index : index))
+        .filter((index) => index >= start);
+
+      this.board.forEach((cell, index) => {
+        this.board[index].hasMovingShadowOf = previousCellIndexes.includes(
+          index
+        )
+          ? {
+              pawnId: pawn.id,
+              color: pawn.color,
+              movingShadowIndex: previousCellIndexes.indexOf(index),
+            }
+          : null;
+      });
+    },
+
+    async clearPawnMovingShadow() {
+      this.board.forEach(async (cell, index) => {
+        if (this.board[index].hasMovingShadowOf) {
+          await this.sleep(this.movingSleepTime);
+        }
+
+        this.board[index].hasMovingShadowOf = null;
+      });
+    },
+
+    clearPawnFromItsPreviousCell(pawn, previousPosition) {
       const previousPawnBoard = this.board[previousPosition];
-      const currentPawnBoard = this.board[pawn.position];
 
       if (previousPosition !== -1) {
         previousPawnBoard.pawns = previousPawnBoard.pawns.filter(
           (pawnInBoard) => pawnInBoard.id !== pawn.id
         );
       }
-
-      this.handleOtherPawnsInTheSameCase(currentPawnBoard, pawn);
     },
 
-    handleOtherPawnsInTheSameCase(pawnBoard, lastPawn) {
+    handleOtherPawnsInTheSameCell(pawnBoard, lastPawn) {
       if (lastPawn.isInVictoryCell) {
         this.board[pawnBoard.id].pawns.push(lastPawn);
         return;
@@ -421,6 +506,10 @@ export const useLudoStore = defineStore("ludo", {
       if (player.rank === this.playersCount - 1) {
         this.isGameFinished = true;
       }
+    },
+
+    async sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
     },
   },
 });

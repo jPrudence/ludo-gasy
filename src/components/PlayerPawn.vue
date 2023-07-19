@@ -48,15 +48,14 @@ const pawnColor = computed(() => {
     <button
       class="flex justify-center w-full"
       :class="{
-        'opacity-80 cursor-no-drop': isDisabled,
-        'blur-[1px]': isDisabled && isPawnInHome,
+        'opacity-80': isDisabled,
         'relative animate-bounce hover:animate-none scale-125 cursor-pointer':
           !isDisabled,
       }"
-      :disabled="isDisabled"
-      @click="ludoStore.movePawn(pawn)"
+      :disabled="isDisabled || pawn.isMoving"
+      @click="async () => await ludoStore.movePawn(pawn)"
     >
-      <BeefIcon :class="pawnColor" :width="iconSize" />
+      <BeefIcon :class="[pawnColor, 'drop-shadow-xl']" :width="iconSize" />
     </button>
   </div>
 </template>
