@@ -46,9 +46,9 @@ const pawnColor = computed(() => {
 <template>
   <div>
     <button
-      class="flex flex-col items-center justify-center gap-3"
+      class="flex justify-center w-full"
       :class="{
-        'opacity-80 scale-75 cursor-no-drop': isDisabled,
+        'opacity-80 cursor-no-drop': isDisabled,
         'blur-[1px]': isDisabled && isPawnInHome,
         'relative animate-bounce hover:animate-none scale-125 cursor-pointer':
           !isDisabled,

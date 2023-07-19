@@ -57,13 +57,17 @@ const ludoStore = useLudoStore();
 
             <div
               v-if="boardItem.pawns.length"
-              class="flex flex-col items-center justify-center"
+              class="flex flex-wrap justify-center"
             >
-              <div v-for="pawn in boardItem.pawns" :key="pawn.id">
+              <div
+                v-for="pawn in boardItem.pawns"
+                :key="pawn.id"
+                :class="[boardItem.pawns.length <= 2 ? 'w-full' : 'w-1/2']"
+              >
                 <PlayerPawn
                   v-if="!pawn.isInVictoryCell"
                   :pawn="pawn"
-                  :iconSize="30"
+                  :iconSize="boardItem.pawns.length > 1 ? 20 : 30"
                 />
               </div>
             </div>
@@ -90,13 +94,17 @@ const ludoStore = useLudoStore();
           >
             <div
               v-if="boardItem.pawns.length"
-              class="flex flex-col items-center justify-center"
+              class="flex flex-wrap justify-center"
             >
-              <div v-for="pawn in boardItem.pawns" :key="pawn.id">
+              <div
+                v-for="pawn in boardItem.pawns"
+                :key="pawn.id"
+                :class="[boardItem.pawns.length <= 2 ? 'w-full' : 'w-1/2']"
+              >
                 <PlayerPawn
                   v-if="pawn.isInVictoryCell"
                   :pawn="pawn"
-                  :iconSize="30"
+                  :iconSize="boardItem.pawns.length > 1 ? 20 : 30"
                 />
               </div>
             </div>
@@ -114,3 +122,8 @@ const ludoStore = useLudoStore();
     </div>
   </div>
 </template>
+<style scoped>
+td {
+  max-width: 55px;
+}
+</style>
