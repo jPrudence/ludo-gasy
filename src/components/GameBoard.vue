@@ -1,8 +1,8 @@
 <script setup>
 import { useLudoStore } from "../stores/ludo";
 import PlayerPawnsHome from "./PlayerPawnsHome.vue";
-import GameBoardTdCell from "./GameBoardTdCell.vue";
-import GameBoardTdCellVictory from "./GameBoardTdCellVictory.vue";
+import GameBoardCell from "./GameBoardCell.vue";
+import GameBoardCellVictory from "./GameBoardCellVictory.vue";
 
 const ludoStore = useLudoStore();
 </script>
@@ -17,14 +17,14 @@ const ludoStore = useLudoStore();
     <table class="my-3">
       <tbody>
         <tr class="font-bold">
-          <GameBoardTdCell
+          <GameBoardCell
             v-for="boardCell in ludoStore.board"
             :key="boardCell.id"
             :boardCell="boardCell"
           />
         </tr>
         <tr class="font-bold">
-          <GameBoardTdCellVictory
+          <GameBoardCellVictory
             v-for="boardCell in ludoStore.board"
             :key="boardCell.id"
             :boardCell="boardCell"

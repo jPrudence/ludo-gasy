@@ -6,11 +6,16 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  elementType: {
+    type: String,
+    default: "td",
+  },
 });
 </script>
 
 <template>
-  <td
+  <component
+    :is="elementType"
     class="p-1"
     :class="[
       (!boardCell.victoryCellOf ||
@@ -36,5 +41,5 @@ const props = defineProps({
         />
       </div>
     </div>
-  </td>
+  </component>
 </template>

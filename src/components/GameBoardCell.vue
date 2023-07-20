@@ -8,6 +8,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  elementType: {
+    type: String,
+    default: "td",
+  },
 });
 
 const pawnsNotInVictoryCell = computed(() => {
@@ -23,7 +27,8 @@ const cellIconClass =
 </script>
 
 <template>
-  <td
+  <component
+    :is="elementType"
     class="border-2 border-gray-600 p-1 relative min-w-[34px] max-w-[55px]"
     :class="[
       !boardCell.pawns.length && 'p-4',
@@ -87,5 +92,5 @@ const cellIconClass =
         />
       </div>
     </div>
-  </td>
+  </component>
 </template>
