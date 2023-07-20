@@ -29,7 +29,7 @@ const cellIconClass =
 <template>
   <component
     :is="elementType"
-    class="border-2 border-gray-600 p-1 relative min-w-[34px] max-w-[55px]"
+    class="border-2 border-gray-600 p-1 relative"
     :class="[
       !boardCell.pawns.length && 'p-4',
       boardCell.cellStartOf && `bg-${boardCell.cellStartOf.color}-100`,

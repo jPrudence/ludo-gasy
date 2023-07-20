@@ -19,6 +19,7 @@ const ludoStore = useLudoStore();
         <tr class="font-bold">
           <GameBoardCell
             v-for="boardCell in ludoStore.board"
+            class="w-[55px] h-[55px]"
             :key="boardCell.id"
             :boardCell="boardCell"
           />
@@ -26,6 +27,7 @@ const ludoStore = useLudoStore();
         <tr class="font-bold">
           <GameBoardCellVictory
             v-for="boardCell in ludoStore.board"
+            class="w-[55px] h-[55px]"
             :key="boardCell.id"
             :boardCell="boardCell"
           />
