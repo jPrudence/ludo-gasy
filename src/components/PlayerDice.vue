@@ -39,11 +39,7 @@ const isPlayerCanMove = computed(() => {
 });
 
 const isDisabled = computed(() => {
-  return (
-    !isPlayerTurn.value ||
-    (isPlayerTurn.value && isPlayerCanMove.value) ||
-    ludoStore.isGameFinished
-  );
+  return !isPlayerTurn.value || ludoStore.isGameFinished;
 });
 </script>
 
@@ -53,10 +49,18 @@ const isDisabled = computed(() => {
       :class="{
         'opacity-20 cursor-no-drop': isDisabled,
         'animate-ping hover:animate-none cursor-pointer':
-          !isDisabled && !ludoStore.isDiceRolling && !player.inMoving,
+          !isDisabled &&
+          !isPlayerCanMove &&
+          !ludoStore.isDiceRolling &&
+          !player.inMoving,
         rolling: !isDisabled && ludoStore.isDiceRolling,
       }"
-      :disabled="isDisabled || ludoStore.isDiceRolling || player.inMoving"
+      :disabled="
+        isDisabled ||
+        ludoStore.isDiceRolling ||
+        player.inMoving ||
+        isPlayerCanMove
+      "
       @click="ludoStore.rollPlayerDice(player.index)"
     >
       <SvgIcon
@@ -66,7 +70,7 @@ const isDisabled = computed(() => {
         "
         type="mdi"
         :path="diceIcons[player.currentDiceValue]"
-        :size="48"
+        :size="60"
       />
       <SvgIcon v-else type="mdi" :path="mdiDice6Outline" :size="48" />
     </button>

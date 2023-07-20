@@ -327,8 +327,6 @@ export const useLudoStore = defineStore("ludo", {
         await this.movePawnSlowlyToCell(pawn, nextPosition);
 
         if (pawn.isArrived) {
-          console.log(`pawn ${pawn.id} is arrived`);
-
           currentPlayer.canMove = false;
           currentPlayer.arrivedPawnsCount++;
 
@@ -345,9 +343,11 @@ export const useLudoStore = defineStore("ludo", {
         this.handleOtherPawnsInTheSameCell(currentPawnBoard, pawn);
       }
 
-      if (diceValue !== 6 || this.playersCount === 1) {
-        this.nextPlayer();
+      if (pawn.isArrived || diceValue === 6) {
+        return;
       }
+
+      this.nextPlayer();
     },
 
     async movePawnSlowlyToCell(pawn, targetCellIndex) {
